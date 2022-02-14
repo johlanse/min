@@ -1,0 +1,416 @@
+definitions:
+  config.CheckQrCode:
+    properties:
+      id:
+        type: integer
+      link:
+        type: string
+    type: object
+  config.DoActive:
+    properties:
+      course_id:
+        description: 课程id
+        type: integer
+      user_id:
+        description: 用户id
+        type: integer
+    type: object
+  config.GetCourseList:
+    properties:
+      course_id:
+        description: 课程id
+        type: integer
+      id:
+        description: 用户id
+        type: integer
+    type: object
+  config.User:
+    properties:
+      account:
+        type: string
+      password:
+        type: string
+    type: object
+  controller.Mess:
+    properties:
+      code:
+        type: integer
+      data: {}
+      err:
+        type: string
+      msg:
+        type: string
+    type: object
+  http.Cookie:
+    type: object
+  lib.Course:
+    properties:
+      id:
+        type: integer
+      link:
+        type: string
+      name:
+        type: string
+      progress:
+        type: string
+    type: object
+  lib.Info:
+    properties:
+      grade:
+        type: string
+      name:
+        type: string
+      student_id:
+        type: string
+    type: object
+  lib.Response:
+    properties:
+      cookies:
+        items:
+          $ref: '#/definitions/http.Cookie'
+        type: array
+      data:
+        type: string
+      status:
+        type: boolean
+    type: object
+  model.Active:
+    properties:
+      curseId:
+        type: integer
+      id:
+        type: integer
+      status:
+        type: integer
+      userId:
+        type: integer
+    type: object
+  model.Min:
+    properties:
+      account:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      state:
+        type: integer
+      tgw:
+        type: string
+      token:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /active/delete_active:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务id
+        in: query
+        name: active_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Mess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 删除一个活动任务
+      tags:
+      - active
+  /active/do_active:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户id以及课程id
+        in: body
+        name: active
+        required: true
+        schema:
+          $ref: '#/definitions/config.DoActive'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Mess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 执行一个任务
+      tags:
+      - active
+  /active/get_actives:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Mess'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Active'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取所有活动任务列表
+      tags:
+      - active
+  /active/stop_active:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务id
+        in: query
+        name: active_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Mess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 停止一个活动任务
+      tags:
+      - active
+  /admin/get_all_user:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Mess'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Min'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取所有已创建的用户
+      tags:
+      - admin
+  /admin/get_login_user:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Mess'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Min'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取所有已登录的用户
+      tags:
+      - admin
+  /min/check_qr_code:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号密码
+        in: body
+        name: qr
+        required: true
+        schema:
+          $ref: '#/definitions/config.CheckQrCode'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Mess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 检查二维码扫码状态
+      tags:
+      - min
+  /min/get_course_list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID:用户id\nCourseID:课程id
+        in: body
+        name: get
+        required: true
+        schema:
+          $ref: '#/definitions/config.GetCourseList'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Mess'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/lib.Course'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取课程列表
+      tags:
+      - min
+  /min/get_courses:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Mess'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/lib.Course'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取课程列表
+      tags:
+      - min
+  /min/info:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lib.Info'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 获取用户信息
+      tags:
+      - min
+  /min/logician:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Mess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 登录微信授权，获取二维码
+      tags:
+      - min
+  /min/login:
+    post:
+      consumes:
+      - application/json
+      description: 登录账号
+      parameters:
+      - description: 账号密码
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/config.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lib.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controller.Mess'
+      summary: 登录明华账号
+      tags:
+      - min
+swagger: "2.0"

@@ -1,0 +1,9 @@
+kind: reverse
+name: min
+source:
+  database: sqlite3
+  conn_str: './data/data.db'
+targets:
+  - type: codes
+    language: golang
+    output_dir: ./data
