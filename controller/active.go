@@ -87,21 +87,14 @@ func DoActive() gin.HandlerFunc {
 				}
 			} else {
 				id = find.Id
-			}
-
-			lib.CommitTime(min.Cookies(), list, id)
-
-			defer func() {
-				_, err := model.UpdateActive(model.Active{
-					Id:       id,
-					UserId:   min.Id,
-					CourseId: ac.CourseID,
-					Status:   0,
-				})
+				find.Status = 1
+				_, err := model.UpdateActive(find)
 				if err != nil {
+					log.Errorln("更新active错误" + err.Error())
 					return
 				}
-			}()
+			}
+			lib.CommitTime(min.Cookies(), list, id)
 		}()
 		context.JSON(200, Mess{
 			Code: 1200,
@@ -162,7 +155,7 @@ func StopActive() gin.HandlerFunc {
 		if !b {
 			context.JSON(403, Mess{
 				Code: 1403,
-				Msg:  "权限不足",
+				Msg:  "参数不足",
 				Err:  "",
 				Data: nil,
 			})
@@ -178,7 +171,7 @@ func StopActive() gin.HandlerFunc {
 			})
 			return
 		}
-		active.Status = 0
+		active.Status = -1
 		_, err = model.UpdateActive(active)
 		if err != nil {
 			context.JSON(403, Mess{

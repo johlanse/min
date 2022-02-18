@@ -71,10 +71,14 @@
             <el-col style="width: 30%;margin-left: 3%;margin-top: 10px;">
               <el-button @click="do_active" type="success">提交任务</el-button>
             </el-col>
+            <el-col>
+              <el-button type="danger" @click="flush_token">刷新token</el-button>
+            </el-col>
 
 
           </el-form-item>
         </el-form>
+
 
       </el-footer>
     </el-container>
@@ -85,11 +89,11 @@
 <script>
 import Foo from "@/components/Foo";
 import Config from "./config/config"
-import {ElMessage} from "element-plus";
+import {ElMessage,ElMessageBox} from "element-plus";
 
 
 export default {
-  components:[Foo],
+  components:[Foo,ElMessageBox],
   data(){
     return {
       label:"MINs",
@@ -125,6 +129,13 @@ export default {
           ElMessage.info("提交成功")
           this.course_id = ""
           this.user_id = ""
+        }
+      })
+    },
+    flush_token:function () {
+      ElMessageBox.prompt("请输入页面token","提示").then(data=>{
+        if (data !== null){
+          window.localStorage.setItem("min_token",data.value)
         }
       })
     }

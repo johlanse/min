@@ -119,3 +119,11 @@ func Update(min Min) (int, error) {
 	}
 	return int(update), nil
 }
+
+func DeleteUser(id int) error {
+	_, err := engine.Delete(&Min{Id: id})
+	if err != nil {
+		return err
+	}
+	return err
+}

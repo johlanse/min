@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"compress/gzip"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"github.com/antchfx/htmlquery"
 	"github.com/guonaihong/gout"
 	"github.com/guonaihong/gout/dataflow"
+	"github.com/imroc/req/v3"
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 	"github.com/tidwall/gjson"
@@ -27,8 +29,8 @@ import (
 var (
 	baseURL = "https://mooc.yinghuaonline.com"
 	headers = map[string]string{
-		"Accept":           "application/json,text/javascript,*/*;q=0.01",
-		"Accept-Encoding":  "gzip, deflate",
+		"Accept": "application/json,text/javascript,*/*;q=0.01",
+
 		"X-Requested-With": "XMLHttpRequest",
 		"Host":             "mooc.yinghuaonline.com",
 		"Origin":           "https://mooc.yinghuaonline.com",
@@ -37,6 +39,7 @@ var (
 	}
 	codeURL = "http://139.155.247.64:7000/data"
 	client  *dataflow.Gout
+	C       *req.Client
 )
 
 func main() {
@@ -85,6 +88,19 @@ func init() {
 
 	//urls, _ := url.Parse("http://127.0.0.1:8898")
 	client = gout.New()
+	C = req.C().DevMode()
+	C.SetCommonHeaders(headers)
+	//C.SetProxyURL("http://127.0.0.1:8898")
+	C.OnAfterResponse(func(c *req.Client, response *req.Response) error {
+		log.Debugln("开始执行中间件", response.Header.Get("Content-Encoding"))
+		log.Debugln("已处理gzip结果")
+		response.Body, _ = gzip.NewReader(response.Body)
+		err := response.UnmarshalJson(response.Result())
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	//&http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(urls)}}
 }
 
@@ -126,6 +142,12 @@ func Identify(code []byte) string {
 }
 
 func onLine(cookies []*http.Cookie) {
+	defer func() {
+		i := recover()
+		if i != nil {
+			log.Errorln("服务器保活出现异常")
+		}
+	}()
 	err := client.POST(baseURL + "/user/online").SetCookies(cookies...).Do()
 	if err != nil {
 		return
@@ -213,7 +235,7 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 	if err != nil {
 		log.Errorln("未能查找到active")
 	}
-	if active.Status == 0 {
+	if active.Status == -1 {
 		log.Errorln("检测到已手动终止任务 :", active)
 	}
 
@@ -230,8 +252,21 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 		return
 	}
 	logger.SetOutput(io.MultiWriter(os.Stdout, file))
-	for _, course := range list.List {
+	info := GetLoginInfo(cookies)
+	logger.Infoln("开始学习任务，姓名==》", info.Name, "课程号==》", active.CourseId)
+	logger.Infoln("共获取到", len(list.List), "个视频")
+	defer logger.Infoln("学习任务已退出，姓名==》", info.Name, "课程号==》", active.CourseId)
+	// 退出时将任务state设置为-1
+	defer func() {
+		active.Status = -1
+		_, err := model.UpdateActive(active)
+		if err != nil {
+			logger.Errorln("更新active的state出现错误")
+			return
+		}
+	}()
 
+	for _, course := range list.List {
 		studyTime := 1
 		studyID := 0
 		videoLen := stringTimeToLong(course.VideoDuration)
@@ -245,12 +280,25 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 		if videoLen >= 600 {
 			go onLine(cookies)
 			for !status {
+				ac, err := model.FindActive(fmt.Sprintf("id=%d", ActiveID))
+				if err != nil {
+					log.Errorln("未能查找到active")
+					return
+				}
+				if ac.Status == -1 {
+					logger.Infoln("已手动停止该任务")
+				}
 				var code []byte
-				err := client.GET(baseURL + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
+				err = client.GET(baseURL + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
 				if err != nil {
 					logger.Errorln("获取验证码出现错误")
 					logger.Errorln(err.Error())
-					return
+					logger.Warnln("正在尝试重新获取验证码")
+					err = client.GET(baseURL + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
+					if err != nil {
+						logger.Errorln("第二次获取验证码失败")
+						break
+					}
 				}
 				var res []byte
 
@@ -284,6 +332,10 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 				logger.Infoln(gjson.GetBytes(res, "msg"))
 				if status {
 					studyID = int(gjson.GetBytes(res, "studyId").Int())
+					if studyID == 0 {
+						status = false
+						continue
+					}
 					logger.Infoln("通过验证码识别")
 				}
 				time.Sleep(3 * time.Second)
@@ -293,6 +345,14 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 			time.Sleep(time.Second * 30)
 		}
 		for studyTime-30 < videoLen {
+			ac, err := model.FindActive(fmt.Sprintf("id=%d", ActiveID))
+			if err != nil {
+				log.Errorln("未能查找到active")
+				return
+			}
+			if ac.Status == -1 {
+				logger.Infoln("已手动停止该任务")
+			}
 			go onLine(cookies)
 			var res []byte
 			values := url.Values{}
@@ -348,13 +408,22 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 
 func GetChapter(courseId int, cookies []*http.Cookie) (CourseList, error) {
 	var chapter CourseList
-	err := client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter).Do()
+	_, err := C.R().SetCookies(cookies...).SetResult(&chapter).Get(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId))
 	if err != nil {
 		return CourseList{}, err
 	}
+
+	//err := client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter).Do()
+	//if err != nil {
+	//	return chapter, err
+	//}
 	for i := 2; i <= chapter.PageInfo.PageCount; i++ {
 		var chapter1 CourseList
-		err = client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter1).Do()
+		//err = client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter1).Do()
+		//if err != nil {
+		//	return chapter, err
+		//}
+		_, err := C.R().SetCookies(cookies...).SetResult(&chapter1).Get(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i))
 		if err != nil {
 			return CourseList{}, err
 		}
@@ -594,7 +663,7 @@ func Login(account, password string) Response {
 		}
 
 		log.Debugln(gjson.GetBytes(body, "@this|@pretty").String())
-		if gjson.GetBytes(body, "@this|@pretty").String() == "0" {
+		if gjson.GetBytes(body, "status").Bool() {
 			return Response{Status: true, Data: gjson.GetBytes(body, "@this|@pretty").String(), Cookies: append(response.Cookies(), rsp.Cookies()...)}
 		}
 		time.Sleep(3 * time.Second)

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export default {
-    baseUrl : "http://127.0.0.1:13450",
+    baseUrl : process.env.VUE_APP_API,
     Api : {
         Login:{
             url:"/min/login"
@@ -32,6 +32,14 @@ export default {
     },
     GetActives : async function(){
         let resp = await axios.post(this.baseUrl+"/active/get_actives")
+        return resp.data
+    },
+    StopActivity: async function(id){
+        let resp = await axios.post(this.baseUrl+"/active/stop_active?active_id="+id)
+        return resp.data
+    },
+    DeleteActivity: async function(id){
+        let resp = await axios.post(this.baseUrl+"/active/delete_active?active_id="+id)
         return resp.data
     }
 }

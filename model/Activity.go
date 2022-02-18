@@ -82,7 +82,7 @@ func UpdateActive(actives Active) (int, error) {
 }
 
 func DeleteActive(id int) error {
-	_, err := engine.ID(id).Delete()
+	_, err := engine.Delete(&Active{Id: id})
 	if err != nil {
 		return err
 	}
