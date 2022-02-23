@@ -8,8 +8,7 @@ require (
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.0
 	github.com/guonaihong/gout v0.2.6
-	github.com/imroc/req/v2 v2.1.0 // indirect
-	github.com/imroc/req/v3 v3.7.2 // indirect
+	github.com/imroc/req/v3 v3.7.2
 	github.com/mattn/go-sqlite3 v1.14.8
 	github.com/sirupsen/logrus v1.8.1
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2

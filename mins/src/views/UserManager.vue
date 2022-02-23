@@ -8,6 +8,7 @@
             <el-table-column label="名称" prop="name" />
             <el-table-column label="进度" prop="progress" />
             <el-table-column label="链接" prop="link" />
+
           </el-table>
         </div>
 
@@ -17,6 +18,15 @@
     <el-table-column label="姓名" prop="name" />
     <el-table-column label="学号" prop="student_id" />
     <el-table-column label="班级" prop="grade" />
+    <el-table-column label="Operations">
+      <template #header>
+        <el-button type="primary" @click="flush()">刷新</el-button>
+      </template>
+      <template #default="scope">
+        <el-button @click="delete_user(scope.row.Id)">删除用户</el-button>
+
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 
@@ -31,44 +41,38 @@ export default {
     return{
         users : [
 
-        ]
+        ],
+      a: async ()=>{
+        this.users = []
+        let resp = await axios.post(config.baseUrl+config.Api.GetLoginUser.url)
+        let con = resp.data.data
+        for (let i = 0; i < con.length; i++) {
+          let resp1 = await axios.post(config.baseUrl+config.Api.Info.url+"?id="+con[i].Id)
+          con[i].name = resp1.data.name
+          con[i].student_id = resp1.data.student_id
+          con[i].grade = resp1.data.grade
+          this.users.push(con[i])
+          let resp2 = await axios.post(config.baseUrl+config.Api.GetCourses.url+"?id="+con[i].Id)
+          con[i].courses = resp2.data.data
+        }
+      }
     }
   },
   created() {
-    let a = async ()=>{
-      let resp = await axios.post(config.baseUrl+config.Api.GetLoginUser.url)
-      let con = resp.data.data
-      for (let i = 0; i < con.length; i++) {
-        let resp1 = await axios.post(config.baseUrl+config.Api.Info.url+"?id="+con[i].Id)
-        con[i].name = resp1.data.name
-        con[i].student_id = resp1.data.student_id
-        con[i].grade = resp1.data.grade
-        this.users.push(con[i])
-        let resp2 = await axios.post(config.baseUrl+config.Api.GetCourses.url+"?id="+con[i].Id)
-        con[i].courses = resp2.data.data
-
-
-      }
-    }
-    a()
-      // this.Axios.post(config.baseUrl+config.Api.GetLoginUser.url).then((resp)=>{
-      //   let con = resp.data.data
-      //   for (let i=0;i<con.length;i++) {
-      //     this.Axios.post(config.baseUrl+config.Api.Info.url+"?id="+con[i].Id).then((resp)=>{
-      //       console.log(resp.data)
-      //         con[i].name = resp.data.name
-      //         con[i].student_id = resp.data.student_id
-      //         con[i].grade = resp.data.grade
-      //     })
-      //     this.Axios.post(config.baseUrl+config.Api.GetCourses.url+"?id="+con[i].Id).then((resp)=>{
-      //       con[i].courses = resp.data.data
-      //     })
-      //   }
-      //   for (let i = 0; i < con.length; i++) {
-      //     this.users.push(con[i])
-      //   }
-      // })
+    this.a()
   },
+  methods:{
+    flush: function () {
+        this.a()
+    },
+    delete_user:function (id) {
+      console.log("删除用户"+id)
+        config.DeleteUser(id).then(()=>{
+          this.flush()
+        })
+
+    }
+  }
 
 }
 </script>

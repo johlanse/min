@@ -198,6 +198,7 @@ func GetLoginInfo(cookies []*http.Cookie) Info {
 	response, err := client.GET(`https://mooc.yinghuaonline.com/user/member`).SetHeader(gout.H{
 		"Host":       "mooc.yinghuaonline.com",
 		"Origin":     "https://mooc.yinghuaonline.com",
+		"Referer":    "https://mooc.yinghuaonline.com/user/",
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 		"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	}).SetCookies(cookies...).Response()
@@ -339,7 +340,6 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 					logger.Infoln("通过验证码识别")
 				}
 				time.Sleep(3 * time.Second)
-
 			}
 			studyTime += 30
 			time.Sleep(time.Second * 30)

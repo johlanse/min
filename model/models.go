@@ -25,10 +25,11 @@ func init() {
 		log.Errorln(err.Error())
 		return
 	}
-	err = engine.CreateTables(&Course{})
+	err = engine.CreateTables(&Course{}, &Min{}, &Active{})
 	if err != nil {
 		return
 	}
+
 }
 
 var engine *xorm.Engine

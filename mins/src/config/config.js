@@ -41,5 +41,13 @@ export default {
     DeleteActivity: async function(id){
         let resp = await axios.post(this.baseUrl+"/active/delete_active?active_id="+id)
         return resp.data
+    },
+    DeleteUser: async function(id){
+        let resp = await axios.post(this.baseUrl+"/admin/delete_user?id="+id)
+        return resp.data
+    },
+    GetLoginUser: async function(){
+        let resp = await axios.post(this.baseUrl+"/admin/get_login_user")
+        return resp.data
     }
 }
