@@ -27,13 +27,13 @@ import (
 )
 
 var (
-	baseURL = "https://mooc.yinghuaonline.com"
+	baseURL = "https://shixun.cdcas.com"
 	headers = map[string]string{
 		"Accept": "application/json,text/javascript,*/*;q=0.01",
 
 		"X-Requested-With": "XMLHttpRequest",
-		"Host":             "mooc.yinghuaonline.com",
-		"Origin":           "https://mooc.yinghuaonline.com",
+		"Host":             "shixun.cdcas.com",
+		"Origin":           "https://shixun.cdcas.com",
 		"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
 		"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 	}
@@ -195,10 +195,10 @@ func GetProgress(courseID int, cookies []*http.Cookie) string {
  */
 func GetLoginInfo(cookies []*http.Cookie) Info {
 	var info Info
-	response, err := client.GET(`https://mooc.yinghuaonline.com/user/member`).SetHeader(gout.H{
-		"Host":       "mooc.yinghuaonline.com",
-		"Origin":     "https://mooc.yinghuaonline.com",
-		"Referer":    "https://mooc.yinghuaonline.com/user/",
+	response, err := client.GET(baseURL + `/user/member`).SetHeader(gout.H{
+		"Host":       "shixun.cdcas.com",
+		"Origin":     baseURL + "",
+		"Referer":    baseURL + "/user/",
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 		"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	}).SetCookies(cookies...).Response()
@@ -312,8 +312,8 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 				err = client.POST(baseURL + "/user/node/study").SetHeader(gout.H{
 					"Accept":           "application/json,text/javascript,*/*;q=0.01",
 					"X-Requested-With": "XMLHttpRequest",
-					"Host":             "mooc.yinghuaonline.com",
-					"Origin":           "https://mooc.yinghuaonline.com",
+					"Host":             "shixun.cdcas.com",
+					"Origin":           baseURL + "",
 					"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
 					"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 				}).SetCookies(cookies...).SetBody(values.Encode()).BindBody(&res).Do()
@@ -363,8 +363,8 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 			response, err := client.POST(baseURL + "/user/node/study").SetHeader(gout.H{
 				"Accept":           "application/json,text/javascript,*/*;q=0.01",
 				"X-Requested-With": "XMLHttpRequest",
-				"Host":             "mooc.yinghuaonline.com",
-				"Origin":           "https://mooc.yinghuaonline.com",
+				"Host":             "shixun.cdcas.com",
+				"Origin":           baseURL + "",
 				"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
 				"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 			}).SetCookies(cookies...).BindBody(&res).SetBody(values.Encode()).Response()
@@ -435,8 +435,8 @@ func GetChapter(courseId int, cookies []*http.Cookie) (CourseList, error) {
 func GetCourse(cookies []*http.Cookie) ([]Course, error) {
 	var courses []Course
 	response, err := client.GET(baseURL + "/user").SetCookies(cookies...).SetHeader(gout.H{
-		"Host":       "mooc.yinghuaonline.com",
-		"Origin":     "https://mooc.yinghuaonline.com",
+		"Host":       "shixun.cdcas.com",
+		"Origin":     baseURL + "",
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 		"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	}).Response()
@@ -487,8 +487,8 @@ func GetCourse(cookies []*http.Cookie) ([]Course, error) {
 	}
 	for j := 2; j <= i; j++ {
 		response, err := client.GET(baseURL + "/user&page=" + strconv.Itoa(j)).SetCookies(cookies...).SetHeader(gout.H{
-			"Host":       "mooc.yinghuaonline.com",
-			"Origin":     "https://mooc.yinghuaonline.com",
+			"Host":       "shixun.cdcas.com",
+			"Origin":     baseURL + "",
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 			"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 		}).Response()
@@ -646,7 +646,7 @@ func Login(account, password string) Response {
 		rsp.Body.Close()
 
 		values := url.Values{}
-		values.Add("schoolId", "47")
+		//values.Add("schoolId", "47")
 		values.Add("username", account)
 		values.Add("password", password)
 		values.Add("code", Identify(code))
