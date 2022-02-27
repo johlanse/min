@@ -3,6 +3,7 @@ package lib
 import (
 	"compress/gzip"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -170,6 +171,7 @@ func onLine(cookies []*http.Cookie) {
 // @Failure 403 {object}
 // @Router / [POST]
 func GetProgress(courseID int, cookies []*http.Cookie) string {
+
 	list, err := GetChapter(courseID, cookies)
 	if err != nil {
 		return "0%"
@@ -194,6 +196,9 @@ func GetProgress(courseID int, cookies []*http.Cookie) string {
  * example
  */
 func GetLoginInfo(cookies []*http.Cookie) Info {
+	if !CheckLogin(cookies) {
+		return Info{}
+	}
 	var info Info
 	response, err := client.GET(baseURL + `/user/member`).SetHeader(gout.H{
 		"Host":       "shixun.cdcas.com",
@@ -232,6 +237,10 @@ func GetLoginInfo(cookies []*http.Cookie) Info {
 }
 
 func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
+	if !CheckLogin(cookies) {
+		log.Errorln("cookie已过期")
+		return
+	}
 	active, err := model.FindActive(fmt.Sprintf("id=%d", ActiveID))
 	if err != nil {
 		log.Errorln("未能查找到active")
@@ -407,6 +416,9 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 }
 
 func GetChapter(courseId int, cookies []*http.Cookie) (CourseList, error) {
+	if !CheckLogin(cookies) {
+		return CourseList{}, errors.New("cookie已过期")
+	}
 	var chapter CourseList
 	_, err := C.R().SetCookies(cookies...).SetResult(&chapter).Get(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId))
 	if err != nil {
@@ -434,6 +446,10 @@ func GetChapter(courseId int, cookies []*http.Cookie) (CourseList, error) {
 
 func GetCourse(cookies []*http.Cookie) ([]Course, error) {
 	var courses []Course
+	if !CheckLogin(cookies) {
+		return courses, errors.New("cookie已过期")
+	}
+
 	response, err := client.GET(baseURL + "/user").SetCookies(cookies...).SetHeader(gout.H{
 		"Host":       "shixun.cdcas.com",
 		"Origin":     baseURL + "",
