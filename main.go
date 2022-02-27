@@ -11,6 +11,7 @@ var port int
 
 func init() {
 	flag.IntVar(&port, "p", 13450, "listen a port")
+	flag.Parse()
 }
 
 func main() {
