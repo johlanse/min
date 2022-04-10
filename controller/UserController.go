@@ -53,7 +53,7 @@ func GetAllUser() gin.HandlerFunc {
 // @Router /admin/get_login_user [POST]
 func GetLoginUser() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		mins, err := model.Query("state=1")
+		mins, err := model.Query("1=1")
 		if err != nil {
 			context.JSON(401, Mess{
 				Code: 1401,

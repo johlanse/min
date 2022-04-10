@@ -2,7 +2,7 @@
   <div >
     <el-form ref="form" :model="form" label-width="120px">
       <el-form-item label="学校">
-        <el-select v-model="school_id" style="width: 100%">
+        <el-select v-model="status" style="width: 100%">
 <!--          <el-option label="燕京理工学院" value="2">燕京理工学院</el-option>-->
 <!--          <el-option value="3">首都师范大学科德学院</el-option>-->
 <!--          <el-option value="4">北京工商大学嘉华学院</el-option>-->
@@ -20,7 +20,7 @@
 <!--          <el-option value="21">北方出租</el-option>-->
 <!--          <el-option value="22">南京航空航天大学金城学院</el-option>-->
 <!--          <el-option value="23">西安工商学院</el-option>-->
-          <el-option value="24" label="成都文理学院">成都文理学院</el-option>
+          <el-option value="0" label="成都文理学院">成都文理学院</el-option>
 <!--          <el-option value="25">云南艺术学院文华学院</el-option>-->
 <!--          <el-option value="26">延安大学西安创新学院</el-option>-->
 <!--          <el-option value="27">温州商学院</el-option>-->
@@ -43,7 +43,7 @@
 <!--          <el-option value="44">云南城市建设职业学院实训平台</el-option>-->
 <!--          <el-option value="45">上海立达学院实训平台</el-option>-->
 <!--          <el-option value="46">哈尔滨广厦学院实训平台</el-option>-->
-          <el-option value="47" label="成都文理学院实训平台">成都文理学院实训平台</el-option>
+          <el-option value="1" label="成都文理学院实训平台">成都文理学院实训平台</el-option>
 <!--          <el-option value="48">西安工商学院实训平台</el-option>-->
 <!--          <el-option value="49">四川应用技术职业学院实训平台</el-option>-->
 <!--          <el-option value="50">云南艺术学院文华学院实训平台</el-option>-->
@@ -82,13 +82,13 @@ export default {
       id : 0,
       account : "",
       password : "",
-      school_id :"24",
+      status :"0",
       message : ""
     }
   },
   methods:{
     click : function () {
-      this.Axios.post(Config.baseUrl+Config.Api.Login.url,{account:this.account,password:this.password}).then((resp)=>{
+      this.Axios.post(Config.baseUrl+Config.Api.Login.url,{account:this.account,password:this.password,status:this.status}).then((resp)=>{
         console.log(resp.data)
 
         let con = resp.data.data

@@ -21,7 +21,7 @@ func startActivity() {
 			log.Errorln("查找用户出现错误" + err.Error())
 			return
 		}
-		list, err := lib.GetChapter(active.CourseId, min.Cookies())
+		list, err := lib.GetChapter(active.CourseId, min.Cookies(), min.GetBase())
 		if err != nil {
 			log.Errorln("查询课程信息错误")
 			return
@@ -41,7 +41,7 @@ func startActivity() {
 				}
 			}()
 
-			lib.CommitTime(min.Cookies(), list, active2.Id)
+			lib.CommitTime(min.Cookies(), list, active2.Id, min.GetBase())
 		}(active)
 		log.Infoln("已开始运行任务", active.Id)
 	}

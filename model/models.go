@@ -77,18 +77,18 @@ func Add(min Min) (int, error) {
  * @return error
  * example
  */
-func Find(condition string) (Min, error) {
-	min := Min{}
+func Find(condition string) (*Min, error) {
+	min := new(Min)
 	err := engine.Ping()
 	if err != nil {
 		err1 := connect()
 		if err1 != nil {
-			return min, err1
+			return nil, err1
 		}
 	}
-	get, err := engine.Where(condition).Get(&min)
+	get, err := engine.Where(condition).Get(min)
 	if err != nil {
-		return Min{}, err
+		return nil, err
 	}
 	if !get {
 		return min, errors.New("don't have data")

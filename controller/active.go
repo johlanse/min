@@ -53,7 +53,7 @@ func DoActive() gin.HandlerFunc {
 			})
 			return
 		}
-		list, err := lib.GetChapter(ac.CourseID, min.Cookies())
+		list, err := lib.GetChapter(ac.CourseID, min.Cookies(), min.GetBase())
 		if err != nil {
 			context.JSON(403, Mess{
 				Code: 1403,
@@ -94,7 +94,7 @@ func DoActive() gin.HandlerFunc {
 					return
 				}
 			}
-			lib.CommitTime(min.Cookies(), list, id)
+			lib.CommitTime(min.Cookies(), list, id, min.GetBase())
 		}()
 		context.JSON(200, Mess{
 			Code: 1200,

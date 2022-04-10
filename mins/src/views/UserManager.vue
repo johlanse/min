@@ -27,6 +27,12 @@
 
       </template>
     </el-table-column>
+    <el-table-column label="平台">
+      <template #default="scope">
+        <span v-if="scope.row.State===0">慕课平台</span>
+        <span v-else>实训平台</span>
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 
@@ -71,7 +77,11 @@ export default {
           this.flush()
         })
 
-    }
+    },
+
+  },
+  computed:{
+
   }
 
 }

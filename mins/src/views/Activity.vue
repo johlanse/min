@@ -99,9 +99,6 @@ export default {
         }
       })
     }
-  },
-  computed:{
-
   }
 }
 </script>

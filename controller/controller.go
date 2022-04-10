@@ -35,10 +35,18 @@ func Login() gin.HandlerFunc {
 			})
 			return
 		}
+		status := user["status"]
 		account, ok := user["account"]
 		password, ok := user["password"]
+		sta, _ := strconv.Atoi(status)
+		var base string
+		if sta == 0 {
+			base = "https://mooc.cdcas.com"
+		} else if sta == 1 {
+			base = "https://shixun.cdcas.com"
+		}
 		if ok {
-			login := lib.Login(account, password)
+			login := lib.Login(account, password, base)
 			if login.Status {
 				min := model.Min{}
 				for _, cookie := range login.Cookies {
@@ -49,7 +57,7 @@ func Login() gin.HandlerFunc {
 					}
 					min.Account = user["account"]
 					min.Password = user["password"]
-					min.State = 1
+					min.State = sta
 				}
 				id, err := model.Add(min)
 				if err != nil {
@@ -113,7 +121,7 @@ func LoginWeiXinController() gin.HandlerFunc {
 			})
 			return
 		}
-		link, err := lib.LoginWeiXin(min.Cookies())
+		link, err := lib.LoginWeiXin(min.Cookies(), min.GetBase())
 		if err != nil {
 			context.JSON(403, Mess{
 				Code: 1403,
@@ -167,7 +175,7 @@ func GetInfo() gin.HandlerFunc {
 			})
 			return
 		}
-		context.JSON(200, lib.GetLoginInfo(min.Cookies()))
+		context.JSON(200, lib.GetLoginInfo(min.Cookies(), min.GetBase()))
 	}
 }
 
@@ -206,11 +214,11 @@ func CheckQrCode() gin.HandlerFunc {
 			})
 			return
 		}
-		code := lib.CheckQrCode(qr.Link, min.Cookies())
+		code := lib.CheckQrCode(qr.Link, min.Cookies(), min.GetBase())
 		if code {
 			min.Id = qr.ID
 			min.State = 1
-			_, err := model.Update(min)
+			_, err := model.Update(*min)
 			if err != nil {
 				context.JSON(403, Mess{
 					Code: 1403,
@@ -272,7 +280,7 @@ func GetCourses() gin.HandlerFunc {
 				Data: nil,
 			})
 		}
-		courses, err := lib.GetCourse(min.Cookies())
+		courses, err := lib.GetCourse(min.Cookies(), min.GetBase())
 		if err != nil {
 			context.JSON(403, Mess{
 				Code: 1403,
@@ -326,7 +334,7 @@ func GetCourseList() gin.HandlerFunc {
 			})
 			return
 		}
-		list, err := lib.GetChapter(getList.CourseID, min.Cookies())
+		list, err := lib.GetChapter(getList.CourseID, min.Cookies(), min.GetBase())
 		if err != nil {
 			context.JSON(403, Mess{
 				Code: 1403,

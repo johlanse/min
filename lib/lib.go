@@ -28,7 +28,6 @@ import (
 )
 
 var (
-	baseURL = "https://shixun.cdcas.com"
 	headers = map[string]string{
 		"Accept": "application/json,text/javascript,*/*;q=0.01",
 
@@ -43,43 +42,6 @@ var (
 	C       *req.Client
 )
 
-func main() {
-	var login Response
-	//_, err := os.Stat("data.data")
-	//if err != nil {
-	//	login = Login("19104978", "1743224847gou")
-	//	src, _ := LoginWeiXin(login.Cookies)
-	//	for {
-	//		code := CheckQrCode(src, login.Cookies)
-	//		if code{
-	//			break
-	//		}
-	//		time.Sleep(5000)
-	//	}
-	//	store(&login,"data.data")
-	//}else {
-	//	load(&login,"data.data")
-	//}
-	//log.Infoln(login)
-
-	login.Cookies = append(login.Cookies, &http.Cookie{Name: "token", Value: "sid.R1LK02hCo33MAEjk6g2MokDEQxp7ZJ"}, &http.Cookie{
-		Name:  "tgw_l7_route",
-		Value: "ba0658839ccc50ccad88ae27d66ffcf7",
-	})
-
-	course, err := GetCourse(login.Cookies)
-	if err != nil {
-		return
-	}
-	log.Infoln(course)
-
-	list, err := GetChapter(course[0].Id, login.Cookies)
-	if err != nil {
-		return
-	}
-	CommitTime(login.Cookies, list, 0)
-}
-
 func init() {
 	log.SetFormatter(&easy.Formatter{
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -87,11 +49,11 @@ func init() {
 	})
 	log.SetLevel(log.DebugLevel)
 
-	//urls, _ := url.Parse("http://127.0.0.1:8898")
 	client = gout.New()
+	client.SetProxy("http://127.0.0.1:8898")
 	C = req.C().DevMode()
 	C.SetCommonHeaders(headers)
-	//C.SetProxyURL("http://127.0.0.1:8898")
+	C.SetProxyURL("http://127.0.0.1:8898")
 	C.OnAfterResponse(func(c *req.Client, response *req.Response) error {
 		log.Debugln("开始执行中间件", response.Header.Get("Content-Encoding"))
 		log.Debugln("已处理gzip结果")
@@ -102,7 +64,7 @@ func init() {
 		}
 		return nil
 	})
-	//&http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(urls)}}
+
 }
 
 type Course struct {
@@ -142,14 +104,14 @@ func Identify(code []byte) string {
 	return gjson.Get(result, "value").String()
 }
 
-func onLine(cookies []*http.Cookie) {
+func onLine(cookies []*http.Cookie, base string) {
 	defer func() {
 		i := recover()
 		if i != nil {
 			log.Errorln("服务器保活出现异常")
 		}
 	}()
-	err := client.POST(baseURL + "/user/online").SetCookies(cookies...).Do()
+	err := client.POST(base + "/user/online").SetCookies(cookies...).Do()
 	if err != nil {
 		return
 	}
@@ -170,9 +132,9 @@ func onLine(cookies []*http.Cookie) {
 // @Success 200 {object}
 // @Failure 403 {object}
 // @Router / [POST]
-func GetProgress(courseID int, cookies []*http.Cookie) string {
+func GetProgress(courseID int, cookies []*http.Cookie, base string) string {
 
-	list, err := GetChapter(courseID, cookies)
+	list, err := GetChapter(courseID, cookies, base)
 	if err != nil {
 		return "0%"
 	}
@@ -195,15 +157,15 @@ func GetProgress(courseID int, cookies []*http.Cookie) string {
  * @return Info
  * example
  */
-func GetLoginInfo(cookies []*http.Cookie) Info {
-	if !CheckLogin(cookies) {
+func GetLoginInfo(cookies []*http.Cookie, base string) Info {
+	if !CheckLogin(cookies, base) {
 		return Info{}
 	}
 	var info Info
-	response, err := client.GET(baseURL + `/user/member`).SetHeader(gout.H{
+	response, err := client.GET(base + `/user/member`).SetHeader(gout.H{
 		"Host":       "shixun.cdcas.com",
-		"Origin":     baseURL + "",
-		"Referer":    baseURL + "/user/",
+		"Origin":     base + "",
+		"Referer":    base + "/user/",
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 		"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	}).SetCookies(cookies...).Response()
@@ -236,8 +198,8 @@ func GetLoginInfo(cookies []*http.Cookie) Info {
 	return info
 }
 
-func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
-	if !CheckLogin(cookies) {
+func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int, base string) {
+	if !CheckLogin(cookies, base) {
 		log.Errorln("cookie已过期")
 		return
 	}
@@ -262,7 +224,7 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 		return
 	}
 	logger.SetOutput(io.MultiWriter(os.Stdout, file))
-	info := GetLoginInfo(cookies)
+	info := GetLoginInfo(cookies, base)
 	logger.Infoln("开始学习任务，姓名==》", info.Name, "课程号==》", active.CourseId)
 	logger.Infoln("共获取到", len(list.List), "个视频")
 	defer logger.Infoln("学习任务已退出，姓名==》", info.Name, "课程号==》", active.CourseId)
@@ -288,7 +250,7 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 		logger.Infoln("正在观看："+course.Name+"，视频时长:", videoLen)
 
 		if videoLen >= 600 {
-			go onLine(cookies)
+			go onLine(cookies, base)
 			for !status {
 				ac, err := model.FindActive(fmt.Sprintf("id=%d", ActiveID))
 				if err != nil {
@@ -299,12 +261,12 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 					logger.Infoln("已手动停止该任务")
 				}
 				var code []byte
-				err = client.GET(baseURL + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
+				err = client.GET(base + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
 				if err != nil {
 					logger.Errorln("获取验证码出现错误")
 					logger.Errorln(err.Error())
 					logger.Warnln("正在尝试重新获取验证码")
-					err = client.GET(baseURL + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
+					err = client.GET(base + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
 					if err != nil {
 						logger.Errorln("第二次获取验证码失败")
 						break
@@ -318,11 +280,11 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 				values.Add("studyTime", strconv.Itoa(studyTime))
 				values.Add("code", Identify(code))
 				//logger.Infoln("已提交请求",values.Encode())
-				err = client.POST(baseURL + "/user/node/study").SetHeader(gout.H{
+				err = client.POST(base + "/user/node/study").SetHeader(gout.H{
 					"Accept":           "application/json,text/javascript,*/*;q=0.01",
 					"X-Requested-With": "XMLHttpRequest",
 					"Host":             "shixun.cdcas.com",
-					"Origin":           baseURL + "",
+					"Origin":           base + "",
 					"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
 					"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 				}).SetCookies(cookies...).SetBody(values.Encode()).BindBody(&res).Do()
@@ -362,18 +324,18 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 			if ac.Status == -1 {
 				logger.Infoln("已手动停止该任务")
 			}
-			go onLine(cookies)
+			go onLine(cookies, base)
 			var res []byte
 			values := url.Values{}
 			values.Add("nodeId", course.Id)
 			values.Add("studyId", strconv.Itoa(studyID))
 			values.Add("studyTime", strconv.Itoa(studyTime))
 			logger.Infoln("已提交请求", values.Encode())
-			response, err := client.POST(baseURL + "/user/node/study").SetHeader(gout.H{
+			response, err := client.POST(base + "/user/node/study").SetHeader(gout.H{
 				"Accept":           "application/json,text/javascript,*/*;q=0.01",
 				"X-Requested-With": "XMLHttpRequest",
 				"Host":             "shixun.cdcas.com",
-				"Origin":           baseURL + "",
+				"Origin":           base + "",
 				"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
 				"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 			}).SetCookies(cookies...).BindBody(&res).SetBody(values.Encode()).Response()
@@ -415,44 +377,58 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int) {
 	}
 }
 
-func GetChapter(courseId int, cookies []*http.Cookie) (CourseList, error) {
-	if !CheckLogin(cookies) {
+func GetChapter(courseId int, cookies []*http.Cookie, base string) (CourseList, error) {
+	if !CheckLogin(cookies, base) {
 		return CourseList{}, errors.New("cookie已过期")
 	}
 	var chapter CourseList
-	_, err := C.R().SetCookies(cookies...).SetResult(&chapter).Get(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId))
-	if err != nil {
-		return CourseList{}, err
-	}
-
-	//err := client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter).Do()
+	//_, err := C.R().SetCookies(cookies...).SetHeaders(map[string]string{
+	//	"Accept":           "application/json,text/javascript,*/*;q=0.01",
+	//	"X-Requested-With": "XMLHttpRequest",
+	//	"Origin":           base + "",
+	//	"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
+	//	"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
+	//}).SetResult(&chapter).Get("https://mooc.cdcas.com" + "/user/study_record.json?courseId=" + strconv.Itoa(courseId))
 	//if err != nil {
-	//	return chapter, err
+	//	log.Errorln(err.Error())
+	//	return CourseList{}, err
 	//}
+
+	err := client.GET(base + "/user/study_record.json?courseId=" + strconv.Itoa(courseId)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter).Do()
+	if err != nil {
+		return chapter, err
+	}
 	for i := 2; i <= chapter.PageInfo.PageCount; i++ {
 		var chapter1 CourseList
-		//err = client.GET(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter1).Do()
-		//if err != nil {
-		//	return chapter, err
-		//}
-		_, err := C.R().SetCookies(cookies...).SetResult(&chapter1).Get(baseURL + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i))
+		err = client.GET(base + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i)).SetCookies(cookies...).SetHeader(gout.H{}).BindJSON(&chapter1).Do()
 		if err != nil {
-			return CourseList{}, err
+			return chapter, err
 		}
+		//_, err := C.R().SetCookies(cookies...).SetHeaders(map[string]string{
+		//	"Accept":           "application/json,text/javascript,*/*;q=0.01",
+		//	"X-Requested-With": "XMLHttpRequest",
+		//	"Origin":           base + "",
+		//	"Content-Type":     "application/x-www-form-urlencoded;charset=UTF-8",
+		//	"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
+		//}).SetResult(&chapter1).Get("https://mooc.cdcas.com" + "/user/study_record.json?courseId=" + strconv.Itoa(courseId) + "&page=" + strconv.Itoa(i))
+		//if err != nil {
+		//	log.Errorln(err.Error())
+		//	return CourseList{}, err
+		//}
 		chapter.List = append(chapter.List, chapter1.List...)
 	}
 	return chapter, err
 }
 
-func GetCourse(cookies []*http.Cookie) ([]Course, error) {
+func GetCourse(cookies []*http.Cookie, base string) ([]Course, error) {
 	var courses []Course
-	if !CheckLogin(cookies) {
+	if !CheckLogin(cookies, base) {
 		return courses, errors.New("cookie已过期")
 	}
 
-	response, err := client.GET(baseURL + "/user").SetCookies(cookies...).SetHeader(gout.H{
+	response, err := client.GET(base + "/user").SetCookies(cookies...).SetHeader(gout.H{
 		"Host":       "shixun.cdcas.com",
-		"Origin":     baseURL + "",
+		"Origin":     base + "",
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 		"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	}).Response()
@@ -502,9 +478,9 @@ func GetCourse(cookies []*http.Cookie) ([]Course, error) {
 		i = (count / 5) + 1
 	}
 	for j := 2; j <= i; j++ {
-		response, err := client.GET(baseURL + "/user&page=" + strconv.Itoa(j)).SetCookies(cookies...).SetHeader(gout.H{
+		response, err := client.GET(base + "/user&page=" + strconv.Itoa(j)).SetCookies(cookies...).SetHeader(gout.H{
 			"Host":       "shixun.cdcas.com",
-			"Origin":     baseURL + "",
+			"Origin":     base + "",
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
 			"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 		}).Response()
@@ -545,12 +521,12 @@ func GetCourse(cookies []*http.Cookie) ([]Course, error) {
  * @return bool
  * example
  */
-func CheckLogin(cookies []*http.Cookie) bool {
-	response, err := client.GET(baseURL + "/user").SetCookies(cookies...).Response() //nolint:bodyclose
+func CheckLogin(cookies []*http.Cookie, base string) bool {
+	response, err := client.GET(base + "/user").SetCookies(cookies...).Response() //nolint:bodyclose
 	if err != nil {
 		return false
 	}
-	if response.Request.URL.String() == baseURL+"/user/login" {
+	if response.Request.URL.String() == base+"/user/login" {
 		return false
 	}
 
@@ -565,7 +541,7 @@ func CheckLogin(cookies []*http.Cookie) bool {
  * @return bool
  * example
  */
-func CheckQrCode(src string, cookies []*http.Cookie) bool {
+func CheckQrCode(src string, cookies []*http.Cookie, base string) bool {
 	tempURL := "https://lp.open.weixin.qq.com/connect/l/qrconnect?uuid=" + src[16:]
 	hea := map[string]string{
 
@@ -590,7 +566,7 @@ func CheckQrCode(src string, cookies []*http.Cookie) bool {
 	if strings.Contains(res, "window.wx_errcode=405") || strings.Contains(res, "window.wx_errcode=405") {
 		compile := regexp.MustCompile(`wx_code='(.*?)'`)
 		wxCode := compile.FindStringSubmatch(res)[1]
-		err := client.GET(baseURL + "/user").SetCookies(cookies...).SetQuery(gout.H{"code": wxCode, "state": "STATE"}).Do()
+		err := client.GET(base + "/user").SetCookies(cookies...).SetQuery(gout.H{"code": wxCode, "state": "STATE"}).Do()
 
 		return err == nil
 	}
@@ -605,7 +581,7 @@ func CheckQrCode(src string, cookies []*http.Cookie) bool {
  * @return error
  * example
  */
-func LoginWeiXin(cookies []*http.Cookie) (string, error) {
+func LoginWeiXin(cookies []*http.Cookie, base string) (string, error) {
 	h := gout.H{
 		"authority":       "open.weixin.qq.com",
 		"method":          "GET",
@@ -615,7 +591,7 @@ func LoginWeiXin(cookies []*http.Cookie) (string, error) {
 		"accept-language": "zh - CN, zh;q = 0.9",
 		"cache-control":   "max - age = 0",
 	}
-	response, err := client.GET(baseURL + "/user").SetHeader(h).SetCookies(cookies...).Response()
+	response, err := client.GET(base + "/user").SetHeader(h).SetCookies(cookies...).Response()
 	if err != nil {
 		log.Errorln("请求/user错误" + err.Error())
 		return "", err
@@ -648,11 +624,11 @@ func LoginWeiXin(cookies []*http.Cookie) (string, error) {
  * @return Response
  * example
  */
-func Login(account, password string) Response {
+func Login(account, password string, base string) Response {
 	count := 0
 	for count < 5 {
 		var code []byte
-		rsp, err := client.GET(baseURL + "/service/code").SetHeader(headers).Response()
+		rsp, err := client.GET(base + "/service/code").SetHeader(headers).Response()
 		if err != nil {
 			log.Errorln("获取验证码出现错误")
 			log.Errorln(err.Error())
@@ -667,7 +643,7 @@ func Login(account, password string) Response {
 		values.Add("password", password)
 		values.Add("code", Identify(code))
 		values.Add("backUrl", "")
-		response, err := client.POST(baseURL + "/user/login").SetHeader(headers).SetBody(values.Encode()).
+		response, err := client.POST(base + "/user/login").SetHeader(headers).SetBody(values.Encode()).
 			SetCookies(rsp.Cookies()...).Response()
 		if err != nil {
 			return Response{}
