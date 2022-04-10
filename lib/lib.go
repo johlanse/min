@@ -50,10 +50,10 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 
 	client = gout.New()
-	client.SetProxy("http://127.0.0.1:8898")
+	//client.SetProxy("http://127.0.0.1:8898")
 	C = req.C().DevMode()
 	C.SetCommonHeaders(headers)
-	C.SetProxyURL("http://127.0.0.1:8898")
+	//C.SetProxyURL("http://127.0.0.1:8898")
 	C.OnAfterResponse(func(c *req.Client, response *req.Response) error {
 		log.Debugln("开始执行中间件", response.Header.Get("Content-Encoding"))
 		log.Debugln("已处理gzip结果")
