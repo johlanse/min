@@ -50,7 +50,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 
 	client = gout.New()
-	client.SetProxy("http://127.0.0.1:8898")
+	//client.SetProxy("http://127.0.0.1:8898")
 	C = req.C().DevMode()
 	C.SetCommonHeaders(headers)
 	//C.SetProxyURL("http://127.0.0.1:8898")
