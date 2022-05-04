@@ -50,7 +50,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 
 	client = gout.New()
-	//client.SetProxy("http://127.0.0.1:8898")
+	client.SetProxy("http://127.0.0.1:8898")
 	C = req.C().DevMode()
 	C.SetCommonHeaders(headers)
 	//C.SetProxyURL("http://127.0.0.1:8898")
@@ -259,6 +259,7 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int, base stri
 				}
 				if ac.Status == -1 {
 					logger.Infoln("已手动停止该任务")
+					return
 				}
 				var code []byte
 				err = client.GET(base + "/service/code").SetHeader(headers).SetCookies(cookies...).BindBody(&code).Do()
@@ -323,6 +324,7 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int, base stri
 			}
 			if ac.Status == -1 {
 				logger.Infoln("已手动停止该任务")
+				return
 			}
 			go onLine(cookies, base)
 			var res []byte
@@ -477,8 +479,9 @@ func GetCourse(cookies []*http.Cookie, base string) ([]Course, error) {
 	} else {
 		i = (count / 5) + 1
 	}
+	log.Infoln(i)
 	for j := 2; j <= i; j++ {
-		response, err := client.GET(base + "/user&page=" + strconv.Itoa(j)).SetCookies(cookies...).SetHeader(gout.H{
+		response, err := client.GET(base + "/user?page=" + strconv.Itoa(j)).SetCookies(cookies...).SetHeader(gout.H{
 			"Host":       "shixun.cdcas.com",
 			"Origin":     base + "",
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
@@ -488,19 +491,19 @@ func GetCourse(cookies []*http.Cookie, base string) ([]Course, error) {
 			return nil, err
 		}
 
-		doc, err := goquery.NewDocumentFromReader(response.Body)
+		doc1, err := goquery.NewDocumentFromReader(response.Body)
 		if err != nil {
 			return nil, err
 		}
 
-		doc.Find("div.item div.con").Each(func(i int, selection *goquery.Selection) {
+		doc1.Find("div.item div.con").Each(func(i int, selection *goquery.Selection) {
 			link, ok := selection.Find("div.name a").Attr("href")
 			if ok {
 				var course Course
 				course.Name = selection.Find("div.name a").Text()
 				course.Link = link
 				course.Id, _ = strconv.Atoi(strings.ReplaceAll(link, "/user/course?courseId=", ""))
-				course.Progress = selection.Find("div.progress dic.txt").Text()
+				course.Progress = selection.Find("div.progress div.txt").Text()
 				courses = append(courses, course)
 			} else {
 				log.Errorln("未找到课程")
