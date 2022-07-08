@@ -24,7 +24,7 @@
     <el-table-column label="备注">
       <template #default="scope">
         <a v-if="_isMobile()" v-bind:href="'mqqwpa://im/chat?chat_type=wpa&uin='+scope.row.Remark+'&version=1&src_type=web&web_src=oicqzone.com'">{{scope.row.Remark}}</a>
-        <a v-else v-bind:href="'tencent://message/?Menu=yes&uin=1743224847&Site=80fans&Service=300&sigT=45a1e5847943b64c6ff3990f8a9e644d2b31356cb0b4ac6b24663a3c8dd0f8aa12a545b1714f9d45'+scope.row.Remark+'&Site=80fans&Service=300&sigT=45a1e5847943b64c6ff3990f8a9e644d2b31356cb0b4ac6b24663a3c8dd0f8aa12a545b1714f9d45'">{{scope.row.Remark}}</a>
+        <a v-else v-bind:href="'tencent://message/?Menu=yes&uin='+scope.row.Remark+'&Site=80fans&Service=300&sigT=45a1e5847943b64c6ff3990f8a9e644d2b31356cb0b4ac6b24663a3c8dd0f8aa12a545b1714f9d45'+scope.row.Remark+'&Site=80fans&Service=300&sigT=45a1e5847943b64c6ff3990f8a9e644d2b31356cb0b4ac6b24663a3c8dd0f8aa12a545b1714f9d45'">{{scope.row.Remark}}</a>
       </template>
     </el-table-column>
     <el-table-column label="Operations">
