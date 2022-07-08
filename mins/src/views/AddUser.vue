@@ -44,6 +44,7 @@
 <!--          <el-option value="45">上海立达学院实训平台</el-option>-->
 <!--          <el-option value="46">哈尔滨广厦学院实训平台</el-option>-->
           <el-option value="1" label="成都文理学院实训平台">成都文理学院实训平台</el-option>
+          <el-option value="2" label="成都文理学院创能平台">成都文理学院创能平台</el-option>
 <!--          <el-option value="48">西安工商学院实训平台</el-option>-->
 <!--          <el-option value="49">四川应用技术职业学院实训平台</el-option>-->
 <!--          <el-option value="50">云南艺术学院文华学院实训平台</el-option>-->
@@ -57,6 +58,10 @@
       </el-form-item>
       <el-form-item label="密码">
         <el-input v-model="password"></el-input>
+      </el-form-item>
+
+      <el-form-item label="备注">
+        <el-input v-model="remark"></el-input>
       </el-form-item>
 
     </el-form>
@@ -83,20 +88,21 @@ export default {
       account : "",
       password : "",
       status :"0",
-      message : ""
+      message : "",
+      remark: ""
     }
   },
   methods:{
     click : function () {
-      this.Axios.post(Config.baseUrl+Config.Api.Login.url,{account:this.account,password:this.password,status:this.status}).then((resp)=>{
+      this.Axios.post(Config.baseUrl+Config.Api.Login.url,{account:this.account,password:this.password,status:this.status,remark:this.remark}).then((resp)=>{
         console.log(resp.data)
-
         let con = resp.data.data
         if (con.data.status) {
           ElMessage.info("登录成功")
           this.account = ""
           this.password = ""
           this.id = con.id
+          this.remark = ""
           // this.Axios.post(Config.baseUrl+Config.Api.LoginWeixin.url+"?id="+this.id).then(resp=>{
           //   console.log(resp.data)
           //   this.src = resp.data.data.url

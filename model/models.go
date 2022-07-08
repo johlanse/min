@@ -16,6 +16,7 @@ type Min struct {
 	Token    string `xorm:"TEXT"`
 	Tgw      string `xorm:"TEXT"`
 	State    int    `xorm:"INTEGER"`
+	Remark   string `xorm:"TEXT"`
 }
 
 func init() {

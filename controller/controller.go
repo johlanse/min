@@ -36,14 +36,17 @@ func Login() gin.HandlerFunc {
 			return
 		}
 		status := user["status"]
-		account, ok := user["account"]
+		account, _ := user["account"]
 		password, ok := user["password"]
+		remark := user["remark"]
 		sta, _ := strconv.Atoi(status)
 		var base string
 		if sta == 0 {
 			base = "https://mooc.cdcas.com"
 		} else if sta == 1 {
 			base = "https://shixun.cdcas.com"
+		} else if sta == 2 {
+			base = "https://cdcas.chuangnengkeji.com"
 		}
 		if ok {
 			login := lib.Login(account, password, base)
@@ -58,6 +61,7 @@ func Login() gin.HandlerFunc {
 					min.Account = user["account"]
 					min.Password = user["password"]
 					min.State = sta
+					min.Remark = remark
 				}
 				id, err := model.Add(min)
 				if err != nil {

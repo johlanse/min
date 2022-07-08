@@ -303,6 +303,10 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int, base stri
 
 				status = gjson.GetBytes(res, "status").Bool()
 				logger.Infoln(gjson.GetBytes(res, "msg"))
+				//if gjson.GetBytes(res, "msg").String() != "提交学时成功!" {
+				//	log.Errorln("非法返回，已终止脚本运行")
+				//	return
+				//}
 				if status {
 					studyID = int(gjson.GetBytes(res, "studyId").Int())
 					if studyID == 0 {
@@ -361,6 +365,11 @@ func CommitTime(cookies []*http.Cookie, list CourseList, ActiveID int, base stri
 			//	logger.Errorln("提交学时出现了异常情况")
 			//	logger.Errorln(gjson.GetBytes(res, "msg"))
 			//	break
+			//}
+
+			//if gjson.GetBytes(res, "msg").String() != "提交学时成功!" {
+			//	log.Errorln("非法返回，已终止脚本运行")
+			//	return
 			//}
 
 			if studyID == 0 {

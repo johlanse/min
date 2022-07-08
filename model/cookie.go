@@ -47,6 +47,8 @@ func (m *Min) GetBase() string {
 		return "https://mooc.cdcas.com"
 	} else if m.State == 1 {
 		return "https://shixun.cdcas.com"
+	} else if m.State == 2 {
+		return "https://cdcas.chuangnengkeji.com"
 	} else {
 		return "https://mooc.cdcas.com"
 	}

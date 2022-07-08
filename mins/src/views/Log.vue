@@ -36,12 +36,12 @@ export default {
   created() {
     this.link = this.$route.params.link
     axios.get(this.link).then(resp=>{
-      this.content = resp.data
+      this.content = resp.data.split().reverse().join()
     })
 
     this.interval = setInterval(()=>{
       axios.get(this.link).then(resp=>{
-        this.content = resp.data
+        this.content = resp.data.split().reverse().join()
 
       })
     },10000)
