@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"min/utill"
 )
 
 func (m *Min) Cookies() []*http.Cookie {
@@ -43,13 +45,5 @@ func (m *Min) Cookies() []*http.Cookie {
  * @return string
  */
 func (m *Min) GetBase() string {
-	if m.State == 0 {
-		return "https://mooc.cdcas.com"
-	} else if m.State == 1 {
-		return "https://shixun.cdcas.com"
-	} else if m.State == 2 {
-		return "https://cdcas.chuangnengkeji.com"
-	} else {
-		return "https://mooc.cdcas.com"
-	}
+	return utill.GetBaseUrl(m.State)
 }

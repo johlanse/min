@@ -20,7 +20,7 @@
 <!--          <el-option value="21">北方出租</el-option>-->
 <!--          <el-option value="22">南京航空航天大学金城学院</el-option>-->
 <!--          <el-option value="23">西安工商学院</el-option>-->
-          <el-option value="0" label="成都文理学院">成都文理学院</el-option>
+
 <!--          <el-option value="25">云南艺术学院文华学院</el-option>-->
 <!--          <el-option value="26">延安大学西安创新学院</el-option>-->
 <!--          <el-option value="27">温州商学院</el-option>-->
@@ -43,8 +43,11 @@
 <!--          <el-option value="44">云南城市建设职业学院实训平台</el-option>-->
 <!--          <el-option value="45">上海立达学院实训平台</el-option>-->
 <!--          <el-option value="46">哈尔滨广厦学院实训平台</el-option>-->
+          <el-option value="0" label="成都文理学院慕课平台">成都文理学院慕课平台</el-option>
           <el-option value="1" label="成都文理学院实训平台">成都文理学院实训平台</el-option>
-          <el-option value="2" label="成都文理学院创能平台">成都文理学院创能平台</el-option>
+          <el-option value="2" label="成都文理学院创能平台">成都文理学院创能实训</el-option>
+          <el-option value="3" label="成都文理学院频蓝实训">成都文理学院频蓝实训</el-option>
+          <el-option value="4" label="成都文理学院戴希实训">成都文理学院戴希实训</el-option>
 <!--          <el-option value="48">西安工商学院实训平台</el-option>-->
 <!--          <el-option value="49">四川应用技术职业学院实训平台</el-option>-->
 <!--          <el-option value="50">云南艺术学院文华学院实训平台</el-option>-->

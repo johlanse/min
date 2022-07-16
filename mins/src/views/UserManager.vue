@@ -41,6 +41,8 @@
         <span v-if="scope.row.State===0">慕课平台</span>
         <span v-else-if="scope.row.State===1">实训平台</span>
         <span v-else-if="scope.row.State===2">创能平台</span>
+        <span v-else-if="scope.row.State===3">频蓝实训</span>
+        <span v-else-if="scope.row.State===4">戴希实训</span>
       </template>
     </el-table-column>
   </el-table>

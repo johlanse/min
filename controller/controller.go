@@ -9,6 +9,7 @@ import (
 	"min/config"
 	"min/lib"
 	"min/model"
+	"min/utill"
 )
 
 // Login
@@ -40,14 +41,7 @@ func Login() gin.HandlerFunc {
 		password, ok := user["password"]
 		remark := user["remark"]
 		sta, _ := strconv.Atoi(status)
-		var base string
-		if sta == 0 {
-			base = "https://mooc.cdcas.com"
-		} else if sta == 1 {
-			base = "https://shixun.cdcas.com"
-		} else if sta == 2 {
-			base = "https://cdcas.chuangnengkeji.com"
-		}
+		base := utill.GetBaseUrl(sta)
 		if ok {
 			login := lib.Login(account, password, base)
 			if login.Status {
