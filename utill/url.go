@@ -11,7 +11,7 @@ var (
 		// 频蓝实训
 		3: "https://cdcas.pinlankeji.com",
 		// 戴希实训
-		4: "https://cdcas.daixiwangluo.com/",
+		4: "https://cdcas.daixiwangluo.com",
 	}
 )
 
